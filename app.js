@@ -1,25 +1,25 @@
-const express = require("express")
-const app     = express()
-const fs      = require("fs")
-const { exec } = require("child_process")
+const express    = require("express")
+const app        = express()
+const { execFile } = require("child_process")
+require("dotenv").config()
 
-const API_KEY    = "sk-1234abcd-secret"
-const DB_PASS    = "password123"
+const API_KEY = process.env.API_KEY
+const DB_PASS = process.env.DB_PASS
 
-app.get("/eval", (req, res) => {
-    const code = req.query.code
-    eval(code)  
+// Xavfli eval funksiyasi butunlay olib tashlandi
+app.get("/safe", (req, res) => {
+    res.json({ message: "Xavfsiz xizmat" })
 })
 
+// execFile (shell injection xavfi yo'q) va faqat ruxsat berilgan buyruqlar filtri
+const ALLOWED = ["ls", "pwd", "date"]
 app.get("/cmd", (req, res) => {
-    const input = req.query.q
-    exec(`ls ${input}`) 
+    const cmd = req.query.q
+    if (!ALLOWED.includes(cmd)) return res.status(400).send("Ruxsat yo'q")
+    execFile(cmd, [], (err, out) => {
+        if (err) return res.status(500).send(err.message)
+        res.send(out)
+    })
 })
 
-app.get("/file", (req, res) => {
-    const filename = req.query.name
-    const data = fs.readFileSync(filename)
-    res.send(data)
-})
-
-app.listen(3000, () => console.log("Server on 3000"))
+app.listen(process.env.PORT || 3000)

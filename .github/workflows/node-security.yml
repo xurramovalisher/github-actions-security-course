@@ -1,0 +1,32 @@
+name: Node.js Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js 20 o'rnatish
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Paketlarni o'rnatish
+        run: |
+          npm install --package-lock-only
+          npm ci
+
+      - name: npm audit dependency scan
+        run: |
+          npm audit --audit-level=high
+
+      - name: ESLint Security kod tahlili
+        run: |
+          npm install --save-dev eslint eslint-plugin-security
+          npx eslint --plugin security --rule 'security/detect-eval-with-expression: error' app.js

@@ -1,0 +1,32 @@
+name: Python Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security:
+    name: Python SAST + Dependency Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodni yuklab olish
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Bandit SAST (statik kod analizi)
+        run: |
+          pip install bandit
+          bandit -r . -ll --exclude ./tests
+
+      - name: pip-audit Dependency zaiflik tekshiruvi
+        run: |
+          pip install pip-audit
+          pip install -r requirements.txt
+          pip-audit
